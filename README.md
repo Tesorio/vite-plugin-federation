@@ -1,5 +1,8 @@
-English | [简体中文](./README-zh.md)
 # vite-plugin-federation
+
+## FORKED
+
+This was forked so that we can set where the CSS gets injected into the host application at. This allows us to inject the CSS within the shadow-DOM, allowing the remote app styles to be isolated from the host app.
 
 <p align="center">
   <a href="https://bestpractices.coreinfrastructure.org/projects/5752"><img src="https://bestpractices.coreinfrastructure.org/projects/5752/badge"></a>

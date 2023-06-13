@@ -54,7 +54,7 @@ export function prodExposePlugin(
       `__federation_expose_${removeNonRegLetter(item[0], NAME_CHAR_REG)}`
     )
     moduleMap += `\n"${item[0]}":()=>{
-      ${DYNAMIC_LOADING_CSS}('${DYNAMIC_LOADING_CSS_PREFIX}${exposeFilepath}')
+      ${DYNAMIC_LOADING_CSS}('${DYNAMIC_LOADING_CSS_PREFIX}${exposeFilepath}', '${item[0]}')
       return __federation_import('\${__federation_expose_${item[0]}}').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},`
   }
 
@@ -69,7 +69,7 @@ export function prodExposePlugin(
       const exportSet = new Set(['Module', '__esModule', 'default', '_export_sfc']);
       let moduleMap = {${moduleMap}}
     const seen = {}
-    export const ${DYNAMIC_LOADING_CSS} = (cssFilePaths) => {
+    export const ${DYNAMIC_LOADING_CSS} = (cssFilePaths, key) => {
       const metaUrl = import.meta.url
       if (typeof metaUrl == 'undefined') {
         console.warn('The remote style takes effect only when the build.target option in the vite.config.ts file is higher than that of "es2020".')
@@ -77,14 +77,17 @@ export function prodExposePlugin(
       }
       const curUrl = metaUrl.substring(0, metaUrl.lastIndexOf('${options.filename}'))
 
-      cssFilePaths.forEach(cssFilePath => {
-        const href = curUrl + cssFilePath
-        if (href in seen) return
-        seen[href] = true
-        const element = document.head.appendChild(document.createElement('link'))
-        element.href = href
-        element.rel = 'stylesheet'
-      })
+      globalThis.__federation_exposed_css__ = globalThis.__federation_exposed_css__|| {};
+      globalThis.__federation_exposed_css__[key] = (root = document.head) => {
+        cssFilePaths.map(cssFilePath => {
+          const href = curUrl + cssFilePath
+          if (href in seen) return
+          seen[href] = true
+          const element = root.appendChild(document.createElement('link'))
+          element.href = href
+          element.rel = 'stylesheet'
+        })
+      }
     };
     async function __federation_import(name) {
         return import(name);
